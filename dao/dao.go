@@ -2,15 +2,18 @@ package dao
 
 import (
 	"fmt"
+	"github.com/arkii/shortly/short"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
+
+var dbPath = "data.db"
 
 /*
 var db *gorm.DB
 
 func Init() {
-	dbc, err := gorm.Open("sqlite3", "data.db")
+	dbc, err := gorm.Open("sqlite3", dbPath)
 	if err != nil {
 		panic("failed to connect database")
 	}
@@ -26,20 +29,53 @@ type Url struct {
 }
 
 func Get(k string) (string, error) {
-	fmt.Println(k)
-	db, err := gorm.Open("sqlite3", "data.db")
+	// fmt.Println(k)
+	db, err := gorm.Open("sqlite3", dbPath)
 	if err != nil {
 		panic("failed to connect database")
 	}
 	defer db.Close()
 	var url Url
-	db.First(&url, "key = ?", k)
-	fmt.Println(url)
-	return url.Link, nil
+	var l string
+	if r := db.First(&url, "key = ?", k); r.Error != nil {
+		fmt.Println("Key Not Found")
+		l = "/"
+	} else {
+		l = url.Link
+	}
+	return l, nil
 }
 
-func Shortly() {
-	db, err := gorm.Open("sqlite3", "data.db")
+func New(l string) (string, error) {
+	// fmt.Println(l)
+	db, err := gorm.Open("sqlite3", dbPath)
+	if err != nil {
+		panic("failed to connect database")
+	}
+	defer db.Close()
+	keys := short.New(l)
+
+	url := Url{Key: keys[0], Link: l}
+	db.Create(&url)
+
+	/* For duplicate keys, max 4 keys per 1 link
+	url := Url{Key: "", Link: l}
+	for _, k := range keys {
+		url.Key = k
+		if dbObj := db.Create(&url); dbObj.Error != nil {
+			fmt.Println(dbObj.Error.Error())
+		} else {
+			break
+		}
+	}
+	*/
+
+	// fmt.Println(url)
+	return url.Key, nil
+}
+
+func DbInit() {
+	db, err := gorm.Open("sqlite3", dbPath)
 	if err != nil {
 		panic("failed to connect database")
 	}
@@ -47,18 +83,4 @@ func Shortly() {
 
 	// Migrate the schema
 	db.AutoMigrate(&Url{})
-
-	// 创建
-	db.Create(&Url{Key: "AAA", Link: "https://baidu.com/"})
-
-	// 读取
-	var url Url
-	// db.First(&url, 1)                   // 查询id为1的product
-	db.First(&url, "Key = ?", "AAA") // 查询code为l1212的product
-
-	// 更新 - 更新product的price为2000
-	db.Model(&url).Update("AAA", "https://google.com/")
-
-	// 删除 - 删除product
-	db.Delete(&url)
 }

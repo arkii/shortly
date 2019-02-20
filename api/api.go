@@ -8,6 +8,10 @@ import (
 	"net/http"
 )
 
+type Form struct {
+	Link string `form:"link" json:"link" xml:"link"  binding:"required"`
+}
+
 func InitRoutes(r *gin.Engine) {
 	r.LoadHTMLGlob("templates/*")
 	r.Use(favicon.New("./static/favicon.ico"))
@@ -15,9 +19,24 @@ func InitRoutes(r *gin.Engine) {
 		c.HTML(http.StatusOK, "index.html", gin.H{})
 	})
 	r.POST("/", func(c *gin.Context) {
-		dao.Shortly()
-		c.JSON(200, gin.H{
-			"message": "pong",
+		var form Form
+		if err := c.ShouldBind(&form); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		key, err := dao.New(form.Link)
+		if err != nil {
+			fmt.Println(err)
+		}
+		/*
+			c.JSON(200, gin.H{
+				"Key":  key,
+				"Link": form.Link,
+			})
+		*/
+		c.HTML(http.StatusOK, "new.html", gin.H{
+			"Key":  key,
+			"Link": form.Link,
 		})
 	})
 	r.GET("/:uri", func(c *gin.Context) {
@@ -27,10 +46,13 @@ func InitRoutes(r *gin.Engine) {
 			fmt.Println(err)
 		}
 		c.Redirect(http.StatusMovedPermanently, link)
-		/*
-			c.JSON(200, gin.H{
-				"Link": link,
-			})
-		*/
 	})
+	/* For init db
+	r.PUT("/", func(c *gin.Context) {
+		dao.DbInit()
+		c.JSON(200, gin.H{
+			"message": "done",
+		})
+	})
+	*/
 }

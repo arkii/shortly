@@ -35,6 +35,7 @@ func InitRoutes(r *gin.Engine) {
 			})
 		*/
 		c.HTML(http.StatusOK, "new.html", gin.H{
+			"Host": c.Request.Host,
 			"Key":  key,
 			"Link": form.Link,
 		})

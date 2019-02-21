@@ -1,0 +1,6 @@
+{
+  "database": {
+    "type":  "sqlite3",
+    "conn":"data.db"
+  }
+}

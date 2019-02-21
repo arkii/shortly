@@ -5,8 +5,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=/srv/shortly
-# ExecStart=/srv/shortly/bin/app  >>/srv/shortly/app.log  2>&1
-ExecStart=/srv/shortly/bin/app
+ExecStart=/srv/shortly/app
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=Shortly

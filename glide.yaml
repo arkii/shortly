@@ -1,6 +1,0 @@
-package: github.com/arkii/shortly
-import:
-- package: github.com/jinzhu/gorm
-  subpackages:
-  - dialects/sqlite
-- package: github.com/gin-gonic/gin
